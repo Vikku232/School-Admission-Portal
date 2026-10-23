@@ -1,0 +1,6 @@
+{
+  "name": "RIPS - School Website & Explore Drawer",
+  "description": "Official website for RIPS school with interactive slide-in Explore drawer, event gallery, blogs, infrastructure, campus life, and admissions portal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
