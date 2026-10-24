@@ -27,6 +27,28 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDrawer, onOpenAd
               </span>
             </div>
 
+            {/* TESTING PURPOSE NOTICE BANNER */}
+            <div className="bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-600/25 border-2 border-[#F5C518] backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-2xl relative overflow-hidden">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-[#F5C518] text-[#1E3A8A] flex items-center justify-center shrink-0 font-bold text-xl shadow-md">
+                  ⚠️
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="bg-[#F5C518] text-[#1E3A8A] text-[11px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wide">
+                      FOR TESTING PURPOSE ONLY
+                    </span>
+                    <span className="text-amber-300 text-xs font-semibold">
+                      • Preview Mode
+                    </span>
+                  </div>
+                  <p className="text-white font-medium text-xs sm:text-sm leading-relaxed">
+                    This portal is set up for <strong>testing purpose only</strong>. If you want to change or update anything (content, streams, fee structure, pictures, or layout), <strong>we will change and update it as per your requirements</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-poppins text-white leading-tight">
               Inspiring Excellence in <span className="text-[#F5C518] underline decoration-[#F5C518]/40 decoration-wavy">Classes 11th & 12th</span>
             </h1>

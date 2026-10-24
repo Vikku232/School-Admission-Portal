@@ -35,6 +35,24 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full font-sans transition-all duration-300">
+      {/* TOP TESTING & DEMO NOTICE BANNER */}
+      <div className="bg-gradient-to-r from-amber-400 via-[#F5C518] to-amber-300 text-slate-950 px-4 py-2 text-xs sm:text-sm font-semibold border-b border-amber-500/40 shadow-xs">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="bg-[#1E3A8A] text-[#F5C518] px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase flex items-center gap-1.5 shadow-xs shrink-0">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+              TESTING PURPOSE ONLY
+            </span>
+            <span className="text-slate-950 font-bold">
+              Notice: This website is for testing purpose only. If you want to change anything, we will change and update it.
+            </span>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1.5 bg-[#1E3A8A]/10 text-[#1E3A8A] px-2.5 py-0.5 rounded-md text-[11px] font-extrabold tracking-wide uppercase border border-[#1E3A8A]/20 shrink-0">
+            ✨ Customization on Request
+          </span>
+        </div>
+      </div>
+
       {/* TOP EMERGENCY & INFORMATION STRIP */}
       <div className="bg-[#1E3A8A] text-white text-xs py-1.5 px-4 hidden md:block border-b border-blue-900/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
