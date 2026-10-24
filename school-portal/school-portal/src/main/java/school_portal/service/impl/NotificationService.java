@@ -59,6 +59,41 @@ public class NotificationService {
             return resp.statusCode() >= 200 && resp.statusCode() < 300;
         } catch (Exception e) {
             log.warn("Resend HTTP dispatch failed: {}", e.getMessage());
+    @Value("${brevo.api.key:${BREVO_API_KEY:}}")
+    private String brevoApiKey;
+
+    /**
+     * Dispatches transactional email via Brevo (Sendinblue) HTTPS REST API (Port 443).
+     * Bypasses Render Free Tier firewall block on SMTP ports.
+     */
+    public boolean sendViaBrevo(String recipientEmail, String subject, String htmlContent, byte[] pdfBytes, String pdfFilename) {
+        if (brevoApiKey == null || brevoApiKey.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            StringBuilder json = new StringBuilder("{");
+            json.append("\"sender\":{\"name\":\"Royal International Public School\",\"email\":\"dgarmy.vikash@gmail.com\"},");
+            json.append("\"to\":[{\"email\":\"").append(recipientEmail.trim()).append("\"}],");
+            json.append("\"subject\":\"").append(subject.replace("\"", "\\\"")).append("\",");
+            json.append("\"htmlContent\":").append(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(htmlContent));
+            if (pdfBytes != null && pdfBytes.length > 0) {
+                String base64 = java.util.Base64.getEncoder().encodeToString(pdfBytes);
+                json.append(",\"attachment\":[{\"name\":\"").append(pdfFilename).append("\",\"content\":\"").append(base64).append("\"}]");
+            }
+            json.append("}");
+
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("https://api.brevo.com/v3/smtp/email"))
+                    .header("api-key", brevoApiKey.trim())
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json.toString(), java.nio.charset.StandardCharsets.UTF_8))
+                    .build();
+
+            java.net.http.HttpResponse<String> resp = httpClient.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+            log.info("Brevo HTTP status: {}, response: {}", resp.statusCode(), resp.body());
+            return resp.statusCode() >= 200 && resp.statusCode() < 300;
+        } catch (Exception e) {
+            log.warn("Brevo HTTP dispatch failed: {}", e.getMessage());
             return false;
         }
     }
@@ -516,7 +551,22 @@ public class NotificationService {
                 }
             }
 
-            // 2. Fall back to JavaMailSender SMTP
+            // 2. Try Brevo HTTPS REST API (Bypasses Render Free Tier firewall on Port 443)
+            if (brevoApiKey != null && !brevoApiKey.trim().isEmpty()) {
+                boolean brevoSent = sendViaBrevo(
+                        recipientEmail.trim(),
+                        "🧾 Official Fee Receipt #" + receiptNo + " - Royal International Public School",
+                        htmlBody,
+                        pdfBytes,
+                        "Official_Fee_Receipt_" + receiptNo + ".pdf"
+                );
+                if (brevoSent) {
+                    log.info("Successfully dispatched PAYMENT RECEIPT PDF via Brevo HTTP API to: {}", recipientEmail);
+                    return "SUCCESS";
+                }
+            }
+
+            // 3. Fall back to JavaMailSender SMTP
             if (mailSender != null) {
                 helper.addAttachment("Official_Fee_Receipt_" + receiptNo + ".pdf",
                         new org.springframework.core.io.ByteArrayResource(pdfBytes), "application/pdf");
