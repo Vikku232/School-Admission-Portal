@@ -23,6 +23,7 @@ import { NOTICES, CAREER_POSTINGS, FEE_STRUCTURE } from '../data/schoolData';
 import { UtilityItem } from '../types';
 import { EmailOtpModal } from './shared/EmailOtpModal';
 import { initiateRazorpayPayment } from '../lib/razorpay';
+import { api } from '../api/axios';
 import { supabaseService } from '../services/supabaseService';
 
 interface UtilityModalsProps {
@@ -434,22 +435,25 @@ export const UtilityModals: React.FC<UtilityModalsProps> = ({
 
                     // Dispatch Official Receipt Email with download voucher attachment
                     try {
-                      await fetch('/api/payments/razorpay/send-receipt-email', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          email: feePayerEmail.trim(),
-                          receiptNo: recNo,
-                          studentId: feeStudentId.trim() || 'RIPS-2027-PORTAL',
-                          studentName: `Student (${feeStudentId.trim() || 'Senior Secondary'})`,
-                          amount: 22000,
-                          feeType: 'Class 11/12 Senior Secondary Quarterly Tuition Fee',
-                          referenceNo: res.razorpay_payment_id
-                        })
+                      const emailRes = await api.post('/payments/razorpay/send-receipt-email', {
+                        email: feePayerEmail.trim(),
+                        receiptNo: recNo,
+                        studentId: feeStudentId.trim() || 'RIPS-2027-PORTAL',
+                        studentName: `Student (${feeStudentId.trim() || 'Senior Secondary'})`,
+                        amount: 22000,
+                        feeType: 'Class 11/12 Senior Secondary Quarterly Tuition Fee',
+                        referenceNo: res.razorpay_payment_id
                       });
-                      toast.success(`Official Receipt PDF sent to ${feePayerEmail.trim()} and saved to database!`);
-                    } catch (emailErr) {
+                      if (emailRes.data && emailRes.data.success) {
+                        toast.success(`Official Receipt PDF sent to ${feePayerEmail.trim()} and saved to database!`);
+                      } else {
+                        console.warn('Failed to dispatch receipt email:', emailRes.data);
+                        toast.error(emailRes.data?.message || 'Email delivery failed. Please check inbox/spam or download below.');
+                      }
+                    } catch (emailErr: any) {
                       console.warn('Failed to dispatch receipt email:', emailErr);
+                      const errMsg = emailErr.response?.data?.message || emailErr.message || 'Email dispatch failed';
+                      toast.error(`Receipt generated, but email delivery issue: ${errMsg}`);
                     }
 
                     setFeePaid(true);

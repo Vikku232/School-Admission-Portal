@@ -299,14 +299,23 @@ public class NotificationService {
     public boolean sendPaymentReceiptEmail(String recipientEmail, String studentName, String studentId, 
                                           String receiptNo, double amount, String paymentMethod, 
                                           String referenceNo, String feeType) {
+        return "SUCCESS".equals(sendPaymentReceiptEmailWithReason(recipientEmail, studentName, studentId, receiptNo, amount, paymentMethod, referenceNo, feeType));
+    }
+
+    /**
+     * Send Official Razorpay Fee Payment Receipt to the Payer's Gmail and return exact status message / error reason.
+     */
+    public String sendPaymentReceiptEmailWithReason(String recipientEmail, String studentName, String studentId, 
+                                                  String receiptNo, double amount, String paymentMethod, 
+                                                  String referenceNo, String feeType) {
         if (recipientEmail == null || recipientEmail.trim().isEmpty()) {
             log.warn("Cannot send receipt email: recipientEmail is empty.");
-            return false;
+            return "Recipient email is empty";
         }
 
         if (mailSender == null) {
             log.warn("JavaMailSender is not configured. Email dispatch skipped.");
-            return false;
+            return "JavaMailSender not configured (check spring.mail SMTP settings)";
         }
 
         try {
@@ -456,10 +465,10 @@ public class NotificationService {
 
             mailSender.send(message);
             log.info("Successfully dispatched PAYMENT RECEIPT PDF email to: {}", recipientEmail);
-            return true;
+            return "SUCCESS";
         } catch (Exception e) {
             log.error("Failed to send payment receipt email to {}: {}", recipientEmail, e.getMessage(), e);
-            return false;
+            return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
         }
     }
 }

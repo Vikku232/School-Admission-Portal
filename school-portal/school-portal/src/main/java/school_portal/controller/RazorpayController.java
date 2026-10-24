@@ -169,16 +169,17 @@ public class RazorpayController {
             String referenceNo = request.getOrDefault("referenceNo", "pay_" + System.currentTimeMillis()).toString();
             String feeType = request.getOrDefault("feeType", "Quarterly Senior Secondary Tuition & Lab Fee").toString();
 
-            boolean sent = notificationService.sendPaymentReceiptEmail(
+            String emailStatus = notificationService.sendPaymentReceiptEmailWithReason(
                     email, studentName, studentId, receiptNo, amount, paymentMethod, referenceNo, feeType
             );
+            boolean sent = "SUCCESS".equalsIgnoreCase(emailStatus);
 
             result.put("success", sent);
             result.put("receiptNo", receiptNo);
             result.put("recipient", email);
             result.put("pdfSavedInDb", true);
             result.put("pdfUrl", "/api/payments/razorpay/receipt/" + receiptNo + "/download-pdf");
-            result.put("message", sent ? "Receipt successfully dispatched to Gmail and saved to database." : "Failed to dispatch email.");
+            result.put("message", sent ? "Receipt successfully dispatched to Gmail and saved to database." : ("Email dispatch failed: " + emailStatus));
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
