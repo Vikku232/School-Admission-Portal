@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/authStore';
  * This ensures all API calls are automatically routed to the Spring Boot backend.
  */
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://school-admission-portal-2.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
