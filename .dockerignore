@@ -1,0 +1,10 @@
+school-portal/school-portal/target/
+school-erp/
+.git/
+.gitignore
+.env
+.env.local
+*.log
+.idea/
+.vscode/
+*.iml
