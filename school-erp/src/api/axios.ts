@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/authStore';
  * This ensures all API calls are automatically routed to the Spring Boot backend.
  */
 export const api = axios.create({
-  baseURL: '/api', // This is proxied to http://localhost:8080 by Vite
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
