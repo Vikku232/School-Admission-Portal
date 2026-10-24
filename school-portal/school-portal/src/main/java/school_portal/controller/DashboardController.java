@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/dashboard")
+@RequestMapping({"/api/admin/dashboard", "/admin/dashboard"})
 public class DashboardController {
 
     @Autowired

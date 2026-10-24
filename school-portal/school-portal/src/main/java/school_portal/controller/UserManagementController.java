@@ -12,7 +12,7 @@ import school_portal.repository.TeacherRepository;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/admin/users")
+@RequestMapping({"/api/admin/users", "/admin/users"})
 public class UserManagementController {
 
     @Autowired

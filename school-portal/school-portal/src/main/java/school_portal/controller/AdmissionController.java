@@ -14,7 +14,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
-@RequestMapping("/api/admissions")
+@RequestMapping({"/api/admissions", "/admissions"})
 public class AdmissionController {
 
     @Autowired(required = false)

@@ -2,11 +2,21 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 /**
- * Global Axios instance configured with a base URL to match the Vite proxy.
- * This ensures all API calls are automatically routed to the Spring Boot backend.
+ * Resolves and normalizes the backend API base URL.
+ * Guarantees that the base URL always ends with '/api',
+ * even if VITE_API_URL was configured without the '/api' suffix in Vercel.
  */
+const getBaseUrl = (): string => {
+  let url = (import.meta.env.VITE_API_URL || 'https://school-admission-portal-2.onrender.com/api').trim();
+  url = url.replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://school-admission-portal-2.onrender.com/api',
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

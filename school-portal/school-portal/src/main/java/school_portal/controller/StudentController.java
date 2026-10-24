@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/students")
+@RequestMapping({"/api/students", "/students"})
 public class StudentController {
 
     @Autowired

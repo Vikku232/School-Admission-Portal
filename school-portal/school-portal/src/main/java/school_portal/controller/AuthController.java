@@ -17,7 +17,7 @@ import school_portal.security.JwtUtil;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping({"/api/auth", "/auth"})
 public class AuthController {
 
     @Autowired

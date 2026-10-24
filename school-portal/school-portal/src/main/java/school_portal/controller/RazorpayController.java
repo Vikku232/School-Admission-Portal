@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/payments/razorpay")
+@RequestMapping({"/api/payments/razorpay", "/payments/razorpay"})
 public class RazorpayController {
 
     @Value("${razorpay.key.id:rzp_test_TrL8dHIIzl9UKI}")
