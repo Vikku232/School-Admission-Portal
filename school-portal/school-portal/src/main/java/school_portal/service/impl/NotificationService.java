@@ -25,6 +25,9 @@ public class NotificationService {
     @Value("${resend.api.key:${RESEND_API_KEY:}}")
     private String resendApiKey;
 
+    @Value("${brevo.api.key:${BREVO_API_KEY:}}")
+    private String brevoApiKey;
+
     private final java.net.http.HttpClient httpClient = java.net.http.HttpClient.newHttpClient();
 
     /**
@@ -59,8 +62,9 @@ public class NotificationService {
             return resp.statusCode() >= 200 && resp.statusCode() < 300;
         } catch (Exception e) {
             log.warn("Resend HTTP dispatch failed: {}", e.getMessage());
-    @Value("${brevo.api.key:${BREVO_API_KEY:}}")
-    private String brevoApiKey;
+            return false;
+        }
+    }
 
     /**
      * Dispatches transactional email via Brevo (Sendinblue) HTTPS REST API (Port 443).
