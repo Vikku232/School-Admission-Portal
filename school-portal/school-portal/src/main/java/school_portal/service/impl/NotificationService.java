@@ -2,6 +2,7 @@ package school_portal.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class NotificationService {
 
     @Autowired(required = false)
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @Value("${app.frontend.url:}")
+    private String frontendUrl;
 
     /**
      * Send confidential 6-digit verification OTP to the user's Gmail and log SMS dispatch.
@@ -314,7 +318,10 @@ public class NotificationService {
             helper.setSubject("🧾 Official Fee Receipt #" + receiptNo + " - Royal International Public School");
 
             String dateStr = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy"));
-            String downloadUrl = "http://localhost:3000/receipt/" + receiptNo;
+            String baseFrontendUrl = (frontendUrl != null && !frontendUrl.trim().isEmpty())
+                    ? frontendUrl.trim().replaceAll("/+$", "")
+                    : "";
+            String downloadUrl = baseFrontendUrl.isEmpty() ? ("/receipt/" + receiptNo) : (baseFrontendUrl + "/receipt/" + receiptNo);
             String amountFormatted = String.format("₹%,.2f", amount);
 
             String htmlBody = "<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: auto; padding: 24px; background-color: #f1f5f9; border-radius: 16px;'>"

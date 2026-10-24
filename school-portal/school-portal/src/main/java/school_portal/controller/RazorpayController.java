@@ -32,6 +32,9 @@ public class RazorpayController {
     @Value("${razorpay.company.name:Royal International Public School}")
     private String companyName;
 
+    @Value("${app.frontend.url:}")
+    private String frontendUrl;
+
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     /**
@@ -190,6 +193,9 @@ public class RazorpayController {
      */
     @GetMapping(value = "/receipt/{receiptNo}", produces = "text/html")
     public String viewReceiptPage(@PathVariable String receiptNo) {
+        String baseFrontendUrl = (frontendUrl != null && !frontendUrl.trim().isEmpty())
+                ? frontendUrl.trim().replaceAll("/+$", "")
+                : "/";
         String dateStr = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy"));
         return "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><title>Official Fee Receipt Voucher #" + receiptNo + "</title>"
                 + "<style>"
@@ -232,7 +238,7 @@ public class RazorpayController {
                 + "<div class='seal'>★ COMPUTER GENERATED OFFICIAL RECEIPT — DIGITALLY VERIFIED BY RIPS BURSAR DIVISION ★</div>"
                 + "<div class='actions'>"
                 + "<button onclick='window.print()' class='btn btn-print'>🖨️ Print / Save as PDF</button>"
-                + "<a href='http://localhost:3000' class='btn' style='background:#f1f5f9;color:#334155'>← Back to Portal</a>"
+                + "<a href='" + baseFrontendUrl + "' class='btn' style='background:#f1f5f9;color:#334155'>← Back to Portal</a>"
                 + "</div></div></div></body></html>";
     }
 
