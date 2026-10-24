@@ -177,9 +177,14 @@ public class RazorpayController {
             result.put("success", sent);
             result.put("receiptNo", receiptNo);
             result.put("recipient", email);
-            result.put("pdfSavedInDb", true);
-            result.put("pdfUrl", "/api/payments/razorpay/receipt/" + receiptNo + "/download-pdf");
-            result.put("message", sent ? "Receipt successfully dispatched to Gmail and saved to database." : ("Email dispatch failed: " + emailStatus));
+            result.put("emailStatus", emailStatus);
+            if (sent) {
+                result.put("message", "Receipt successfully dispatched to Gmail and saved to database.");
+            } else if ("RENDER_FREE_TIER_SMTP_BLOCKED".equalsIgnoreCase(emailStatus)) {
+                result.put("message", "PDF receipt generated! (Note: Cloud Free Tier pauses direct SMTP. Click below to view/download receipt.)");
+            } else {
+                result.put("message", "PDF receipt generated and saved. " + emailStatus);
+            }
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {

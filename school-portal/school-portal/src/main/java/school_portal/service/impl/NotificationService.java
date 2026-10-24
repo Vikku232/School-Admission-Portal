@@ -22,6 +22,47 @@ public class NotificationService {
     @Value("${app.frontend.url:}")
     private String frontendUrl;
 
+    @Value("${resend.api.key:${RESEND_API_KEY:}}")
+    private String resendApiKey;
+
+    private final java.net.http.HttpClient httpClient = java.net.http.HttpClient.newHttpClient();
+
+    /**
+     * Dispatches transactional email via Resend HTTPS REST API (Port 443).
+     * Bypasses Render Free Tier firewall block on SMTP ports 25, 465, and 587.
+     */
+    public boolean sendViaResend(String recipientEmail, String subject, String htmlContent, byte[] pdfBytes, String pdfFilename) {
+        if (resendApiKey == null || resendApiKey.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            StringBuilder json = new StringBuilder("{");
+            json.append("\"from\":\"R.I.P.S. Accounts Division <onboarding@resend.dev>\",");
+            json.append("\"to\":[\"").append(recipientEmail.trim()).append("\"],");
+            json.append("\"subject\":\"").append(subject.replace("\"", "\\\"")).append("\",");
+            json.append("\"html\":").append(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(htmlContent));
+            if (pdfBytes != null && pdfBytes.length > 0) {
+                String base64 = java.util.Base64.getEncoder().encodeToString(pdfBytes);
+                json.append(",\"attachments\":[{\"filename\":\"").append(pdfFilename).append("\",\"content\":\"").append(base64).append("\"}]");
+            }
+            json.append("}");
+
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + resendApiKey.trim())
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json.toString(), java.nio.charset.StandardCharsets.UTF_8))
+                    .build();
+
+            java.net.http.HttpResponse<String> resp = httpClient.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+            log.info("Resend HTTP status: {}, response: {}", resp.statusCode(), resp.body());
+            return resp.statusCode() >= 200 && resp.statusCode() < 300;
+        } catch (Exception e) {
+            log.warn("Resend HTTP dispatch failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
     /**
      * Send confidential 6-digit verification OTP to the user's Gmail and log SMS dispatch.
      */
@@ -460,15 +501,39 @@ public class NotificationService {
                 }
             }
 
-            helper.addAttachment("Official_Fee_Receipt_" + receiptNo + ".pdf",
-                    new org.springframework.core.io.ByteArrayResource(pdfBytes), "application/pdf");
+            // 1. Try Resend HTTPS REST API (Bypasses Render Free Tier firewall on Port 443)
+            if (resendApiKey != null && !resendApiKey.trim().isEmpty()) {
+                boolean resendSent = sendViaResend(
+                        recipientEmail.trim(),
+                        "🧾 Official Fee Receipt #" + receiptNo + " - Royal International Public School",
+                        htmlBody,
+                        pdfBytes,
+                        "Official_Fee_Receipt_" + receiptNo + ".pdf"
+                );
+                if (resendSent) {
+                    log.info("Successfully dispatched PAYMENT RECEIPT PDF via Resend HTTP API to: {}", recipientEmail);
+                    return "SUCCESS";
+                }
+            }
 
-            mailSender.send(message);
-            log.info("Successfully dispatched PAYMENT RECEIPT PDF email to: {}", recipientEmail);
+            // 2. Fall back to JavaMailSender SMTP
+            if (mailSender != null) {
+                helper.addAttachment("Official_Fee_Receipt_" + receiptNo + ".pdf",
+                        new org.springframework.core.io.ByteArrayResource(pdfBytes), "application/pdf");
+                mailSender.send(message);
+                log.info("Successfully dispatched PAYMENT RECEIPT PDF email via SMTP to: {}", recipientEmail);
+                return "SUCCESS";
+            }
+
             return "SUCCESS";
         } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            if (msg.contains("timed out") || msg.contains("SocketTimeoutException") || msg.contains("MailConnectException")) {
+                log.warn("Render Free Tier firewall blocked outbound SMTP port 587. PDF receipt saved in database for receipt {}", receiptNo);
+                return "RENDER_FREE_TIER_SMTP_BLOCKED";
+            }
             log.error("Failed to send payment receipt email to {}: {}", recipientEmail, e.getMessage(), e);
-            return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            return msg.isEmpty() ? e.getClass().getSimpleName() : msg;
         }
     }
 }

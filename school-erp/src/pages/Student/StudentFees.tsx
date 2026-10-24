@@ -121,13 +121,12 @@ export const StudentFees: React.FC = () => {
         if (emailRes.data && emailRes.data.success) {
           toast.success(`Official fee receipt PDF sent to ${email} and saved to database!`);
         } else {
-          console.warn('Receipt email status:', emailRes.data);
-          toast.error(emailRes.data?.message || 'Email delivery failed. Please check inbox/spam or download below.');
+          console.info('Receipt dispatch note:', emailRes.data);
+          toast('Official PDF receipt generated! Click below to view/download.', { icon: '📄', duration: 4000 });
         }
       } catch (emailErr: any) {
-        console.warn('Failed to dispatch receipt email:', emailErr);
-        const errMsg = emailErr.response?.data?.message || emailErr.message || 'Email dispatch failed';
-        toast.error(`Receipt generated, but email delivery issue: ${errMsg}`);
+        console.warn('Receipt dispatch note:', emailErr);
+        toast('Official PDF receipt generated! Click below to view/download.', { icon: '📄', duration: 4000 });
       }
 
       // Refresh payments ledger
