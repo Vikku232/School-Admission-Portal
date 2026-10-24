@@ -5,9 +5,9 @@ FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /build
 
-# Copy Maven Wrapper files
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
+# Copy Maven Wrapper files from backend directory
+COPY school-portal/school-portal/.mvn/ .mvn/
+COPY school-portal/school-portal/mvnw school-portal/school-portal/pom.xml ./
 
 # Convert CRLF line endings to LF and set executable permissions for Linux
 RUN sed -i 's/\r$//' mvnw && chmod +x ./mvnw
@@ -16,7 +16,7 @@ RUN sed -i 's/\r$//' mvnw && chmod +x ./mvnw
 RUN ./mvnw dependency:go-offline -B || true
 
 # Copy source code and build production JAR
-COPY src ./src
+COPY school-portal/school-portal/src ./src
 RUN ./mvnw clean package -DskipTests -B
 
 # =========================================================================
