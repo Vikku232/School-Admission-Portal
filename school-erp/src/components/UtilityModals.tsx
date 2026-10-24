@@ -422,9 +422,9 @@ export const UtilityModals: React.FC<UtilityModalsProps> = ({
                       status: 'COMPLETED'
                     });
 
-                    // Dispatch Official Receipt Email with download voucher attachment
+                    // Dispatch Official Receipt Email via Vercel Serverless (Port 587 is completely open on Vercel!)
                     try {
-                      const emailRes = await api.post('/payments/razorpay/send-receipt-email', {
+                      const emailPayload = {
                         email: feePayerEmail.trim(),
                         receiptNo: recNo,
                         studentId: feeStudentId.trim() || 'RIPS-2027-PORTAL',
@@ -432,11 +432,22 @@ export const UtilityModals: React.FC<UtilityModalsProps> = ({
                         amount: 22000,
                         feeType: 'Class 11/12 Senior Secondary Quarterly Tuition Fee',
                         referenceNo: res.razorpay_payment_id
+                      };
+
+                      const vResponse = await fetch('/api/send-receipt', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(emailPayload)
                       });
-                      if (emailRes.data && emailRes.data.success) {
-                        toast.success(`Official Receipt PDF sent to ${feePayerEmail.trim()} and saved to database!`);
+                      const vData = await vResponse.json();
+
+                      // Also register in Render backend for DB & PDF voucher generation
+                      api.post('/payments/razorpay/send-receipt-email', emailPayload).catch(() => {});
+
+                      if (vData && vData.success) {
+                        toast.success(`Official Receipt email dispatched to ${feePayerEmail.trim()}!`);
                       } else {
-                        console.info('Receipt dispatch note:', emailRes.data);
+                        console.info('Vercel mailer dispatch note:', vData);
                         toast('Official PDF receipt generated! Click below to view/download.', { icon: '📄', duration: 4000 });
                       }
                     } catch (emailErr: any) {

@@ -107,9 +107,9 @@ export const StudentFees: React.FC = () => {
 
       await supabaseService.recordPayment(paymentRecord);
 
-      // Dispatch Official Receipt Email with download voucher attachment
+      // Dispatch Official Receipt Email via Vercel Serverless (Port 587 is completely open on Vercel!)
       try {
-        const emailRes = await api.post('/payments/razorpay/send-receipt-email', {
+        const emailPayload = {
           email: email,
           receiptNo: receiptNo,
           studentId: studentId,
@@ -117,11 +117,22 @@ export const StudentFees: React.FC = () => {
           amount: totalDue,
           feeType: 'Tuition & Composite Fee (Quarterly)',
           referenceNo: paymentResponse.razorpay_payment_id
+        };
+
+        const vResponse = await fetch('/api/send-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(emailPayload)
         });
-        if (emailRes.data && emailRes.data.success) {
-          toast.success(`Official fee receipt PDF sent to ${email} and saved to database!`);
+        const vData = await vResponse.json();
+
+        // Also register in Render backend for DB & PDF voucher generation
+        api.post('/payments/razorpay/send-receipt-email', emailPayload).catch(() => {});
+
+        if (vData && vData.success) {
+          toast.success(`Official fee receipt email dispatched to ${email}!`);
         } else {
-          console.info('Receipt dispatch note:', emailRes.data);
+          console.info('Vercel mailer dispatch note:', vData);
           toast('Official PDF receipt generated! Click below to view/download.', { icon: '📄', duration: 4000 });
         }
       } catch (emailErr: any) {

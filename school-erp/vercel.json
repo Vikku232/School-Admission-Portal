@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/send-receipt",
+      "destination": "/api/send-receipt"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://school-admission-portal-2.onrender.com/api/:path*"
     },
