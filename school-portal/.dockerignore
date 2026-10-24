@@ -1,0 +1,8 @@
+school-portal/target/
+.git/
+.gitignore
+.env
+.env.local
+*.log
+.idea/
+*.iml
