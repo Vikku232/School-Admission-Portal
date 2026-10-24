@@ -7,6 +7,7 @@ import { IndianRupee, Download, CheckCircle2, ShieldCheck, Printer, ExternalLink
 import { useAuthStore } from '../../store/authStore';
 import { initiateRazorpayPayment, RAZORPAY_KEY_ID } from '../../lib/razorpay';
 import { supabaseService, SupabasePayment } from '../../services/supabaseService';
+import { api } from '../../api/axios';
 import toast from 'react-hot-toast';
 
 export const StudentFees: React.FC = () => {
@@ -108,22 +109,25 @@ export const StudentFees: React.FC = () => {
 
       // Dispatch Official Receipt Email with download voucher attachment
       try {
-        await fetch('/api/payments/razorpay/send-receipt-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: email,
-            receiptNo: receiptNo,
-            studentId: studentId,
-            studentName: studentName,
-            amount: totalDue,
-            feeType: 'Tuition & Composite Fee (Quarterly)',
-            referenceNo: paymentResponse.razorpay_payment_id
-          })
+        const emailRes = await api.post('/payments/razorpay/send-receipt-email', {
+          email: email,
+          receiptNo: receiptNo,
+          studentId: studentId,
+          studentName: studentName,
+          amount: totalDue,
+          feeType: 'Tuition & Composite Fee (Quarterly)',
+          referenceNo: paymentResponse.razorpay_payment_id
         });
-        toast.success(`Official fee receipt PDF sent to ${email} and saved to database!`);
-      } catch (emailErr) {
+        if (emailRes.data && emailRes.data.success) {
+          toast.success(`Official fee receipt PDF sent to ${email} and saved to database!`);
+        } else {
+          console.warn('Receipt email status:', emailRes.data);
+          toast.error(emailRes.data?.message || 'Email delivery failed. Please check inbox/spam or download below.');
+        }
+      } catch (emailErr: any) {
         console.warn('Failed to dispatch receipt email:', emailErr);
+        const errMsg = emailErr.response?.data?.message || emailErr.message || 'Email dispatch failed';
+        toast.error(`Receipt generated, but email delivery issue: ${errMsg}`);
       }
 
       // Refresh payments ledger

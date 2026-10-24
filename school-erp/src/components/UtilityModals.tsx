@@ -69,24 +69,13 @@ export const UtilityModals: React.FC<UtilityModalsProps> = ({
     setAdminIsLoading(true);
     
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: adminEmail.trim(),
-          password: adminPassword,
-          role: 'admin' // Since it's admin portal
-        })
+      const response = await api.post('/auth/login', {
+        email: adminEmail.trim(),
+        password: adminPassword,
+        role: 'admin' // Since it's admin portal
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Invalid credentials');
-      }
-
-      const data = await response.json();
+      const data = response.data;
       
       // Save to Zustand & localStorage
       login({ email: data.email, name: data.name, role: 'admin' }, data.token);

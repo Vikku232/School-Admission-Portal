@@ -119,10 +119,20 @@ CREATE TABLE IF NOT EXISTS public.payments (
     amount NUMERIC(10, 2) NOT NULL,
     payment_method VARCHAR(50) NOT NULL, -- 'RAZORPAY_UPI', 'RAZORPAY_CARD', 'CASH_COUNTER', 'CHEQUE'
     reference_no VARCHAR(100),
+    razorpay_payment_id VARCHAR(100),
+    payer_email VARCHAR(255),
+    invoice_pdf TEXT,
+    pdf_url TEXT,
     date DATE DEFAULT CURRENT_DATE,
     status VARCHAR(50) DEFAULT 'COMPLETED',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Ensure columns exist if table was already created
+ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS razorpay_payment_id VARCHAR(100);
+ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS payer_email VARCHAR(255);
+ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS invoice_pdf TEXT;
+ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS pdf_url TEXT;
 
 -- 7. TIMETABLE SCHEDULES TABLE
 CREATE TABLE IF NOT EXISTS public.timetable_slots (

@@ -1,3 +1,5 @@
+import { api } from '../api/axios';
+
 // Razorpay Client SDK Utility for RIPS School ERP
 export const RAZORPAY_KEY_ID = 
   import.meta.env.VITE_RAZORPAY_KEY_ID || 
@@ -66,20 +68,13 @@ export const initiateRazorpayPayment = async (
   let generatedOrderId = options.orderId;
   if (!generatedOrderId) {
     try {
-      const orderResp = await fetch('/api/payments/razorpay/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: options.amount,
-          currency: 'INR',
-          receipt: `rcpt_${Date.now()}`
-        })
+      const orderResp = await api.post('/payments/razorpay/create-order', {
+        amount: options.amount,
+        currency: 'INR',
+        receipt: `rcpt_${Date.now()}`
       });
-      if (orderResp.ok) {
-        const orderData = await orderResp.json();
-        if (orderData.orderId) {
-          generatedOrderId = orderData.orderId;
-        }
+      if (orderResp.data && orderResp.data.orderId) {
+        generatedOrderId = orderResp.data.orderId;
       }
     } catch (e) {
       // Backend order creation optional fallback
